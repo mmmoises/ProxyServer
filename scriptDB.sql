@@ -4,7 +4,8 @@ USE proxy;
 CREATE TABLE movimietnos(
 	id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     ip varchar(100),
-    pagina varchar(100)   
+    pagina varchar(100),
+    fechaHora DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE premium(
@@ -17,11 +18,20 @@ CREATE TABLE premium(
 CREATE TABLE cookies(
 	id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     keyy TEXT,
-    val TEXT
+    val TEXT,
+    fechaHora DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE BasicAuth(
+    id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    Auth TEXT,
+    Hash TEXT,
+    fechaHora DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE credenciales(
 	id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     usuario TEXT,
-    contrasena TEXT
+    contrasena TEXT,
+    fechaHora DATETIME DEFAULT CURRENT_TIMESTAMP
 );

