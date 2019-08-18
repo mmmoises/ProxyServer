@@ -1,0 +1,26 @@
+//Passwords are saved here.lsd=AVp6LPSP
+display=
+enable_profile_selector=
+isprivate=
+legacy_return=0
+profile_selector_ids=
+return_session=
+skip_api_login=
+signed_next=
+trynum=1
+timezone=
+lgndim=
+lgnrnd=135645_y0nC
+lgnjs=n
+email=asdasdasd
+pass=asdasdasdad
+login=1
+prefill_contact_point=
+prefill_source=
+prefill_type=
+first_prefill_source=
+first_prefill_type=
+had_cp_prefilled=false
+had_password_prefilled=false
+ab_test_data=
+
