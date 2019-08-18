@@ -31,7 +31,10 @@ CREATE TABLE BasicAuth(
 
 CREATE TABLE credenciales(
 	id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ip varchar(100),
+    origen TEXT,
     usuario TEXT,
     contrasena TEXT,
     fechaHora DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+

