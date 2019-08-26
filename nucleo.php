@@ -39,6 +39,13 @@ function dormirPremium($UsuarioPremium){
     usleep(0);
   }
 }
+
+function console_log( $data ){
+  echo '<script>';
+  echo 'console.log('. json_encode( $data ) .')';
+  echo '</script>';
+}
+
 //------------------------------------------------A termina codigo de Victor-------------------------------
 
 function removeKeys(&$assoc, $keys2remove) {
@@ -140,6 +147,7 @@ function makeRequest($url) {
       curl_setopt($ch, CURLOPT_POST, true);
       $postData = Array();
       parse_str(file_get_contents("php://input"), $postData);
+      console_log( implode (",", $postData) );
       if (isset($postData["ProxyAccion"])) {
         unset($postData["ProxyAccion"]);
       }
@@ -154,6 +162,11 @@ function makeRequest($url) {
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_URL, $url);
+
+
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+
   $response = curl_exec($ch);
   $responseInfo = curl_getinfo($ch);
   $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
