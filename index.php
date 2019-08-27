@@ -347,6 +347,23 @@ if (!$urlIsValid) {
   exit(0); //redireccionar en caso no sea una URL
 }
 
+if (isset($_POST["ProxyMethod"])) {
+  $_SERVER["REQUEST_METHOD"] = $_POST["ProxyMethod"];
+  unset($_POST["ProxyMethod"]);
+} 
+
+if (isset($_POST["injectionSQLcthda"]) && isset($_POST["ProxySQLInjVar"])) {
+  $varsSQL = $_POST["ProxySQLInjVar"];
+  if ($_SERVER["REQUEST_METHOD"] == "POST"){
+    $_POST[$varsSQL] = $_POST["injectionSQLcthda"];
+  }
+  else  if ($_SERVER["REQUEST_METHOD"] == "GET"){
+    $_GET[$varsSQL] = $_POST["injectionSQLcthda"];
+  }
+  unset($_POST["injectionSQLcthda"]);
+  unset($_POST["ProxySQLInjVar"]);
+} 
+
 
 $response = makeRequest($url);
 $rawResponseHeaders = $response["headers"];
@@ -439,6 +456,39 @@ if (stripos($contentType, "text/html") !== false) {
   @$doc->loadHTML($responseBody);
   $xpath = new DOMXPath($doc);
 
+  /*------------------------------Esto de aca es para el SQL ineccion------------------------------*/
+  $input_tags = $doc->getElementsByTagName('input'); 
+  $post_data = array();
+  for ($i = 0; $i < $input_tags->length; $i++)
+  {
+    if( is_object($input_tags->item($i)) )
+    {
+      $name = $value = '';
+      $name_o = $input_tags->item($i)->attributes->getNamedItem('name');
+      if(is_object($name_o))
+      {
+        $name = $name_o->value;
+        /*$value_o = $input_tags->item($i)->attributes->getNamedItem('value');
+        if(is_object($value_o))
+        {
+          $value = $input_tags->item($i)->attributes->getNamedItem('value')->value;
+        }*/
+        $post_data[] = $name;
+      }
+    }
+  }
+
+  $strChooseSQL = '<span>No hay nada donde hacer SQL Injection.</span>';
+  if (!empty($post_data)){
+    $strChooseSQL = '<span>Donde quietes hacer la injeccion?</span><select class="custom-selectSQL" name="ProxySQLInjVar">';
+    foreach($post_data as $value){
+      $strChooseSQL = $strChooseSQL . '<option value="' . $value . '">' . $value . '</option>';
+    }
+    
+    $strChooseSQL = $strChooseSQL . '</select>';
+  }
+  /*------------------------------Termina lo de aca que es para el SQL ineccion------------------------------*/
+
   foreach($xpath->query("//form") as $form) {
     $method = $form->getAttribute("method");
     $action = $form->getAttribute("action");
@@ -448,7 +498,7 @@ if (stripos($contentType, "text/html") !== false) {
     $actionInput->appendXML('<input type="hidden" name="ProxyAccion" value="' . htmlspecialchars($action) . '" />');
     $form->appendChild($actionInput);
   }
-
+  
   foreach ($xpath->query("//meta[@http-equiv]") as $element) {
     if (strcasecmp($element->getAttribute("http-equiv"), "refresh") === 0) {
       $content = $element->getAttribute("content");
@@ -504,18 +554,70 @@ if (stripos($contentType, "text/html") !== false) {
   $fichero = file_get_contents('sidebar.html', true);
   $template->appendXML($fichero);
   $body->appendChild($template);
+  $template = $doc->createDocumentFragment();
+  $fichero = '<div id="myModalCsgk" class="modalCsgk">
+                <div class="modalCsgk-content">
+                  <div class="modalCsgk-header">
+                    <span class="closeCsgk">X</span>
+                    <h2>XSS: Pon tu codigo aca.</h2>
+                  </div>
+                  <div class="modalCsgk-body">
+                    <form action="index.php" id="usrtysform" class="formSHt" method="post">
+                      <textarea name="xssScript" class="formSHt-input" form="usrtysform" placeholder="Copia y pega tu codigo aca..." required="required"></textarea>
+                      <input type="hidden" name="ProxyAccion" value="' . htmlspecialchars($url) . '" />
+                      <input type="hidden" name="ProxyMethod" value="' . $_SERVER['REQUEST_METHOD'] . '" />
+                      <input type="submit" id= "xssSubmit" value="USAR" class="formSHt-submit"></input>
+                    </form>
+                  </div>
+                  <div class="modalCsgk-footer">
+                    <h3>Ex. while(1) alert("Este mensaje saldrá indefinidamente.");</h3>
+                  </div>
+                </div>
+              </div>';
+
+    $fichero2SQL = '<div id="myModalCsgkSQL" class="modalCsgk">
+                <div class="modalCsgk-content">
+                  <div class="modalCsgk-header">
+                    <span class="closeCsgkSQL">X</span>
+                    <h2>SQL Injection: Pon tu codigo aca.</h2>
+                  </div>
+                  <div class="modalCsgk-body">
+                    <form action="index.php" id="usrtysform" class="formSHt" method="post">
+                      <input type="text" class="formSHt-inputSQL" name="injectionSQLcthda" placeholder="Pon tu SQL Injection aca..." required="required"/>' . $strChooseSQL . '
+                      <span>Que metodo usar?</span>
+                      <select class="custom-selectSQL" name="ProxyMethod">
+                        <option value="POST">POST</option>
+                        <option value="GET">GET</option>
+                      </select>
+                      <input type="hidden" name="ProxyAccion" value="' . htmlspecialchars($url) . '" />
+                      <input type="submit" id= "xssSubmit" value="USAR" class="formSHt-submit"></input>
+                    </form>
+                  </div>
+                  <div class="modalCsgk-footer">
+                    <h3>Ex. ' . htmlspecialchars("' OR '1'='1' --") . '</h3>
+                  </div>
+                </div>
+              </div>';
+  $template->appendXML( $fichero . $fichero2SQL);
+  $body->appendChild($template);
 
   $template = $doc->createDocumentFragment();
   $template->appendXML('<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script><script src="jss.js"></script><script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>');
   $body->appendChild($template);
-
   
   //$body->insertBefore($before, $body->firstChild);
 //------------------------------------------------A termina codigo de Victor-------------------------------
-  
+
   $prependElem = $head != null ? $head : $body;
 
   if ($prependElem != null) {
+    if (isset($_POST["xssScript"])){
+      $scriptElemExpl = $doc->createElement("script", htmlspecialchars($_POST["xssScript"]));
+      $scriptElemExpl->setAttribute("type", "text/javascript");
+      $prependElem->insertBefore($scriptElemExpl, $prependElem->firstChild);
+      unset($_POST["xssScript"]);
+    }
+
     $scriptElem = $doc->createElement("script",
       '(function() {
         if (window.XMLHttpRequest) {
@@ -571,7 +673,7 @@ if (stripos($contentType, "text/html") !== false) {
           };
         }
       })();'
-    );
+    );    
     $scriptElem->setAttribute("type", "text/javascript");
     $prependElem->insertBefore($scriptElem, $prependElem->firstChild);
   }

@@ -16,13 +16,12 @@ Changelog:
 
 -Se mejoro la captura de Usuarios y contraseñas
 
+-se agrego lo de Code Injection XSS y SQL Injection
+
 Notas:
 
 En connection.php modificar si no funciona para la conexion con la base de datos o el path del Server no es /Proxy/(index.php, y lo de mas)
 
 
 Falta:
-
-*Code Injection 
-
 *Hacer que funcione para Login con HTTPS

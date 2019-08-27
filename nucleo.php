@@ -151,6 +151,9 @@ function makeRequest($url) {
       if (isset($postData["ProxyAccion"])) {
         unset($postData["ProxyAccion"]);
       }
+      if (isset($postData["xssScript"])) {
+        unset($postData["xssScript"]);
+      }
       curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
     break;
     case "PUT":
