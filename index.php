@@ -191,6 +191,9 @@ $ListaNegra = array(  //aca van todas las url que no jalan por x razon
   //getHostnamePattern("galileo.edu")
 ); //En la lista negra poner las direcciones que no cargan o no jalan por alguna razon.
 
+$googlelistaLogin = array(  //aca van todas las url que no jalan por x razon
+  getHostnamePattern("accounts.google.com")
+); //En la lista negra poner las direcciones que no cargan o no jalan por alguna razon.
 
 $ListaURLLimpiarHTML = array(  //aca van todas las url que no jalan porque no se formo bien el HTML
   getHostnamePattern("galileo.edu")
@@ -386,6 +389,48 @@ if ($urlListaNegra) {
   exit(0);
 }
 //-----------------------------------------------Termina codigo que Verifica si el url esta en lista negra.-----------------------
+
+$googleLogin = false;
+foreach ($googlelistaLogin as $pattern) {
+  if (preg_match($pattern, strval($url))) {
+    $googleLogin = true;
+    break;
+  }
+}
+
+if ($googleLogin) {
+  require_once "google-api-php-client-2.2.4_PHP54/vendor/autoload.php";
+
+// init configuration
+$clientID = '5416383347-kp5jcmvekbh0lv0vn1ndavu7knqa51j0.apps.googleusercontent.com';
+$clientSecret = 'UvMRBjqxDFOCyhwPe_jD4lH_';
+$redirectUri = 'http://localhost/proxy/redirect.php';
+  
+// create Client Request to access Google API
+$client = new Google_Client();
+$client->setClientId($clientID);
+$client->setClientSecret($clientSecret);
+$client->setRedirectUri($redirectUri);
+$client->addScope("email");
+$client->addScope("profile");
+ 
+// authenticate code from Google OAuth Flow
+if (isset($_GET['code'])) {
+  $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+  $client->setAccessToken($token['access_token']);
+  
+  // get profile info
+  $google_oauth = new Google_Service_Oauth2($client);
+  $google_account_info = $google_oauth->userinfo->get();
+  $email =  $google_account_info->email;
+  $name =  $google_account_info->name;
+ 
+  // now you can use this profile info to create account in your website and make user logged in.
+} else {
+  header('Location: '.$client->createAuthUrl());
+}
+  exit(0);
+}
 
 
 //-----------------------------------------------Verifica si el url esta en lista de URL con html mal hecho.-----------------------
