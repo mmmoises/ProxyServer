@@ -24,4 +24,4 @@ En connection.php modificar si no funciona para la conexion con la base de datos
 
 
 Falta:
-*Hacer que funcione para Login con HTTPS
+*Hacer login con Google

