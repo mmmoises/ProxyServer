@@ -117,6 +117,7 @@ function makeRequest($url) {
     $sql="INSERT INTO cookies (keyy, val)  VALUES ('$key', '$val'); ";
     mysqli_query($conn, $sql);
   }
+
   //------------------------------------------------A termina codigo de Victor-------------------------------
 
   $removedHeaders = removeKeys($browserRequestHeaders, array(
@@ -181,8 +182,8 @@ function makeRequest($url) {
   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
   //curl_setopt($ch, CURLOPT_COOKIE, 'cookiename=cookievalue');
 
-  curl_setopt($ch , CURLOPT_COOKIEJAR, 'cookies.txt');
-  curl_setopt($ch , CURLOPT_COOKIEFILE, 'cookies.txt');
+  curl_setopt($ch , CURLOPT_COOKIEJAR, 'htdocs\proxy\cookies.txt');
+  curl_setopt($ch , CURLOPT_COOKIEFILE, 'htdocs\proxy\cookies.txt');
 
   $response = curl_exec($ch);
   $responseInfo = curl_getinfo($ch);
@@ -190,8 +191,17 @@ function makeRequest($url) {
   curl_close($ch);
   $responseHeaders = substr($response, 0, $headerSize);
   $responseBody = substr($response, $headerSize);
-  //echo $responseBody;
-  //exit();
+  
+  preg_match_all('/^Set-Cookie:\s*([^;]*)/mi',  $response, $matches);
+  $cookies = array();
+  foreach($matches[1] as $item) {
+      parse_str($item, $cookie);
+      foreach ($cookie as $key => $val){
+        $sql="INSERT INTO cookies (keyy, val)  VALUES ('$key', '$val'); ";
+        mysqli_query($conn, $sql);
+      }
+  }
+
   return array("headers" => $responseHeaders, "body" => $responseBody, "responseInfo" => $responseInfo);
 }
 

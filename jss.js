@@ -61,3 +61,20 @@ window.onclick = function(event) {
   }
 }
 
+
+var modalCook = document.getElementById("myModalCook");
+var btnCook = document.getElementById("myBtnCookies");
+var spanCook = document.getElementsByClassName("closeCook")[0];
+
+btnCook.onclick = function() {
+  modalCook.style.display = "block";
+}
+spanCook.onclick = function() {
+  modalCook.style.display = "none";
+}
+window.onclick = function(event) {
+  if (event.target == modalCook) {
+    modalCook.style.display = "none";
+  }
+}
+

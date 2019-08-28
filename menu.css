@@ -480,6 +480,19 @@
   overflow-y: scroll;
 }
 
+.formSHt-inputCookies{
+  width: 100%;
+  height: 80%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 12px;
+  overflow-y: scroll;
+}
+
 .formSHt-inputSQL{
   width: 100%;
   height: 40%;
@@ -556,6 +569,13 @@
 }
 
 .closeCsgkSQL {
+  color: white;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.closeCook {
   color: white;
   float: right;
   font-size: 28px;
