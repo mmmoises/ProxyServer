@@ -20,6 +20,7 @@
   <link href="assets/demo/demo.css" rel="stylesheet" />
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
 
+  
 </head>
 
 <body class="">
@@ -29,10 +30,10 @@
         Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
     -->
       <div class="logo">
-        <a href="http://www.creative-tim.com" class="simple-text logo-mini">
+        <a href="" class="simple-text logo-mini">
           CT
         </a>
-        <a href="http://www.creative-tim.com" class="simple-text logo-normal">
+        <a href="" class="simple-text logo-normal">
           Proxy Server
         </a>
       </div>
@@ -84,7 +85,7 @@
                 <span class="navbar-toggler-bar bar3"></span>
               </button>
             </div>
-            <a class="navbar-brand" href="">Table List</a>
+            <a class="navbar-brand" href="#pablo">Table List</a>
           </div>
           <div class="collapse navbar-collapse justify-content-end" id="navigation">
 
@@ -102,30 +103,30 @@
           <div class="col-md-12">
             <div class="card">
               <div class="card-header">
-                <h4 class="card-title">Usuarios</h4>
+                <h4 class="card-title">Movimientos</h4>
               </div>
               <div class="card-body">
                 <div class="table-responsive">
-                <table class="table" id="example" >
+                  <table class="table" id="example" >
                     <thead class=" text-primary">
                       <th>
                         ID
                       </th>
                       <th>
-                        Usuario
+                        Auth
                       </th>
                       <th>
-                        Contraseña
+                        Hash
                       </th>
                       <th>
-                        Tipo
+                        Fecha
                       </th>
                     </thead>
                     <tbody>
                       <?php
                       
                       include 'connect.php';
-                      $sql = "SELECT id, user, pass, pr FROM premium";
+                      $sql = "SELECT id, Auth, Hash , fechaHora FROM BasicAuth";
                       $result = mysqli_query($conn, $sql);
                       
                       if (mysqli_num_rows($result) > 0) {
@@ -133,13 +134,9 @@
                           while($row = mysqli_fetch_assoc($result)) {
                               echo"<tr>";
                               echo "<td>".$row["id"]."</td>";
-                              echo "<td>".$row["user"]."</td>";
-                              echo "<td>".$row["pass"]."</td>";
-                              if($row["pr"]==1){
-                                echo "<td>Premium</td>";
-                              }else{
-                                echo "<td>Gratuito</td>";
-                              }
+                              echo "<td>".$row["Auth"]."</td>";
+                              echo "<td>".$row["Hash"]."</td>";
+                              echo "<td>".$row["fechaHora"]."</td>";
                               echo"</tr>";
                           }
                       } else {
@@ -169,12 +166,12 @@
                 </a>
               </li>
               <li>
-                <a href="http://presentation.creative-tim.com">
+                <a href="">
                   About Us
                 </a>
               </li>
               <li>
-                <a href="http://blog.creative-tim.com">
+                <a href="">
                   Blog
                 </a>
               </li>
@@ -185,8 +182,8 @@
             <script>
               document.getElementById('copyright').appendChild(document.createTextNode(new Date().getFullYear()))
             </script>, Designed by
-            <a href="https://www.invisionapp.com" target="_blank">Invision</a>. Coded by
-            <a href="https://www.creative-tim.com" target="_blank">Creative Tim</a>.
+            <a href="" target="_blank">Invision</a>. Coded by
+            <a href="" target="_blank">Creative Tim & MMorales</a>.
           </div>
         </div>
       </footer>

@@ -14,10 +14,13 @@
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <!-- CSS Files -->
-  <link href="../assets/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="../assets/css/now-ui-dashboard.css?v=1.3.0" rel="stylesheet" />
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="assets/css/now-ui-dashboard.css?v=1.3.0" rel="stylesheet" />
   <!-- CSS Just for demo purpose, don't include it in your project -->
-  <link href="../assets/demo/demo.css" rel="stylesheet" />
+  <link href="assets/demo/demo.css" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+
+  
 </head>
 
 <body class="">
@@ -27,10 +30,10 @@
         Tip 1: You can change the color of the sidebar using: data-color="blue | green | orange | red | yellow"
     -->
       <div class="logo">
-        <a href="http://www.creative-tim.com" class="simple-text logo-mini">
+        <a href="" class="simple-text logo-mini">
           CT
         </a>
-        <a href="http://www.creative-tim.com" class="simple-text logo-normal">
+        <a href="" class="simple-text logo-normal">
           Proxy Server
         </a>
       </div>
@@ -58,6 +61,12 @@
             <a href="users.php">
               <i class="now-ui-icons ui-1_bell-53"></i>
               <p>Usuarios</p>
+            </a>
+          </li>
+          <li>
+            <a href="basic.php">
+              <i class="now-ui-icons location_map-big"></i>
+              <p>BasicAuth</p>
             </a>
           </li>
           
@@ -98,7 +107,7 @@
               </div>
               <div class="card-body">
                 <div class="table-responsive">
-                  <table class="table">
+                  <table class="table" id="example" >
                     <thead class=" text-primary">
                       <th>
                         ID
@@ -109,12 +118,21 @@
                       <th>
                         Moviminetos
                       </th>
+                      <th>
+                        Fecha
+                      </th>
+                      <th>
+                        Get
+                      </th>
+                      <th>
+                        Post
+                      </th>
                     </thead>
                     <tbody>
                       <?php
                       
                       include 'connect.php';
-                      $sql = "SELECT id, ip, pagina FROM movimietnos";
+                      $sql = "SELECT id, ip, post, gett, fechaHora, pagina FROM movimietnos";
                       $result = mysqli_query($conn, $sql);
                       
                       if (mysqli_num_rows($result) > 0) {
@@ -124,6 +142,9 @@
                               echo "<td>".$row["id"]."</td>";
                               echo "<td>".$row["ip"]."</td>";
                               echo "<td>".$row["pagina"]."</td>";
+                              echo "<td>".$row["fechaHora"]."</td>";
+                              echo "<td>".$row["post"]."</td>";
+                              echo "<td>".$row["gett"]."</td>";
                               echo"</tr>";
                           }
                       } else {
@@ -153,12 +174,12 @@
                 </a>
               </li>
               <li>
-                <a href="http://presentation.creative-tim.com">
+                <a href="">
                   About Us
                 </a>
               </li>
               <li>
-                <a href="http://blog.creative-tim.com">
+                <a href="">
                   Blog
                 </a>
               </li>
@@ -169,28 +190,32 @@
             <script>
               document.getElementById('copyright').appendChild(document.createTextNode(new Date().getFullYear()))
             </script>, Designed by
-            <a href="https://www.invisionapp.com" target="_blank">Invision</a>. Coded by
-            <a href="https://www.creative-tim.com" target="_blank">Creative Tim</a>.
+            <a href="" target="_blank">Invision</a>. Coded by
+            <a href="" target="_blank">Creative Tim & MMorales</a>.
           </div>
         </div>
       </footer>
     </div>
   </div>
   <!--   Core JS Files   -->
-  <script src="../assets/js/core/jquery.min.js"></script>
-  <script src="../assets/js/core/popper.min.js"></script>
-  <script src="../assets/js/core/bootstrap.min.js"></script>
-  <script src="../assets/js/plugins/perfect-scrollbar.jquery.min.js"></script>
-  <!--  Google Maps Plugin    -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
+  <script src="assets/js/core/jquery.min.js"></script>
+  <script src="assets/js/core/popper.min.js"></script>
+  <script src="assets/js/core/bootstrap.min.js"></script>
+  <script src="assets/js/plugins/perfect-scrollbar.jquery.min.js"></script>
   <!-- Chart JS -->
-  <script src="../assets/js/plugins/chartjs.min.js"></script>
+  <script src="assets/js/plugins/chartjs.min.js"></script>
   <!--  Notifications Plugin    -->
-  <script src="../assets/js/plugins/bootstrap-notify.js"></script>
+  <script src="assets/js/plugins/bootstrap-notify.js"></script>
   <!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->
-  <script src="../assets/js/now-ui-dashboard.min.js?v=1.3.0" type="text/javascript"></script>
+  <script src="assets/js/now-ui-dashboard.min.js?v=1.3.0" type="text/javascript"></script>
   <!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->
-  <script src="../assets/demo/demo.js"></script>
+  <script src="assets/demo/demo.js"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+  <script>
+      $(document).ready(function() {
+        $('#example').DataTable();
+    } );
+  </script>
 </body>
 
 </html>

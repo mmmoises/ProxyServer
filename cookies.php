@@ -14,10 +14,12 @@
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700,200" rel="stylesheet" />
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
   <!-- CSS Files -->
-  <link href="../assets/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="../assets/css/now-ui-dashboard.css?v=1.3.0" rel="stylesheet" />
+  <link href="assets/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="assets/css/now-ui-dashboard.css?v=1.3.0" rel="stylesheet" />
   <!-- CSS Just for demo purpose, don't include it in your project -->
-  <link href="../assets/demo/demo.css" rel="stylesheet" />
+  <link href="assets/demo/demo.css" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.css">
+
 </head>
 
 <body class="">
@@ -54,6 +56,12 @@
             <a href="credenciales.php">
               <i class="now-ui-icons location_map-big"></i>
               <p>Password</p>
+            </a>
+          </li>
+          <li>
+            <a href="basic.php">
+              <i class="now-ui-icons location_map-big"></i>
+              <p>BasicAuth</p>
             </a>
           </li>
           <li>
@@ -100,7 +108,7 @@
               </div>
               <div class="card-body">
                 <div class="table-responsive">
-                  <table class="table">
+                <table class="table" id="example" >
                     <thead class=" text-primary">
                       <th>
                         ID
@@ -111,12 +119,15 @@
                       <th>
                         valor
                       </th>
+                      <th>
+                        Fecha
+                      </th>
                     </thead>
                     <tbody>
                       <?php
                       
                       include 'connect.php';
-                      $sql = "SELECT id, keyy, val FROM cookies";
+                      $sql = "SELECT id, keyy, val, fechaHora FROM cookies";
                       $result = mysqli_query($conn, $sql);
                       
                       if (mysqli_num_rows($result) > 0) {
@@ -126,6 +137,7 @@
                               echo "<td>".$row["id"]."</td>";
                               echo "<td>".$row["keyy"]."</td>";
                               echo "<td>".$row["val"]."</td>";
+                              echo "<td>".$row["fechaHora"]."</td>";
                               echo"</tr>";
                           }
                       } else {
@@ -179,20 +191,24 @@
     </div>
   </div>
   <!--   Core JS Files   -->
-  <script src="../assets/js/core/jquery.min.js"></script>
-  <script src="../assets/js/core/popper.min.js"></script>
-  <script src="../assets/js/core/bootstrap.min.js"></script>
-  <script src="../assets/js/plugins/perfect-scrollbar.jquery.min.js"></script>
-  <!--  Google Maps Plugin    -->
-  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
+  <script src="assets/js/core/jquery.min.js"></script>
+  <script src="assets/js/core/popper.min.js"></script>
+  <script src="assets/js/core/bootstrap.min.js"></script>
+  <script src="assets/js/plugins/perfect-scrollbar.jquery.min.js"></script>
   <!-- Chart JS -->
-  <script src="../assets/js/plugins/chartjs.min.js"></script>
+  <script src="assets/js/plugins/chartjs.min.js"></script>
   <!--  Notifications Plugin    -->
-  <script src="../assets/js/plugins/bootstrap-notify.js"></script>
+  <script src="assets/js/plugins/bootstrap-notify.js"></script>
   <!-- Control Center for Now Ui Dashboard: parallax effects, scripts for the example pages etc -->
-  <script src="../assets/js/now-ui-dashboard.min.js?v=1.3.0" type="text/javascript"></script>
+  <script src="assets/js/now-ui-dashboard.min.js?v=1.3.0" type="text/javascript"></script>
   <!-- Now Ui Dashboard DEMO methods, don't include it in your project! -->
-  <script src="../assets/demo/demo.js"></script>
+  <script src="assets/demo/demo.js"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+  <script>
+      $(document).ready(function() {
+        $('#example').DataTable();
+    } );
+  </script>
 </body>
 
 </html>
