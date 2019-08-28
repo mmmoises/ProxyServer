@@ -1,0 +1,9 @@
+{
+    "name": "Search",
+    "version": "1.0",
+    "manifest_version": 2,
+    "description": "Search",
+    "browser_action": {
+    "default_popup": "popup.html"
+      }
+   }
